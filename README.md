@@ -40,8 +40,8 @@ For easier installation experience, you first need to install the following:
   </br> Speaking of which, you need to install GraalVM for the code generation part. If you have Java, it is probably
   HotSpotVM and not GraalVM. GraalVM is required to compile the generated codes from SQL++ queries. Using Java HotSpotVM
   means the generated code will be executed in interpreter-mode.
-  </br> **Please download GraalVM v21.3 as this was the one we used and we know it works :-)**
-  </br> **You only need to download and unzip GraalVM. You do NOT have to make it your default JVM.**
+  </br> * **Please download GraalVM v21.3 as this was the one we used and we know it works :-)**
+  </br> ** **You only need to download and unzip GraalVM. You do NOT have to make it your default JVM.**
 
 ## Compiling and Configuring AsterixDB
 
@@ -72,8 +72,8 @@ You need to change <code><PATH_TO_GRAALVM></code> to the location of GraalVM, fo
       environment:
         JAVA_HOME: /home/wail/vms/graalvm-ce-java11-21.3.2
 
-**Make sure you do that for the two commented YAML blocks (i.e., the one under <code>[ncs]</code>
-and <code>[cc]</code>)**
+*Make sure you do that for the two commented YAML blocks (i.e., the one under <code>[ncs]</code>
+and <code>[cc]</code>)
 
 Save and close `instance_start.yml`
 
@@ -193,7 +193,7 @@ The dropdown menu for changing the plan format is located on top of the query bo
 
 After executing a query, click `PLAN`, located in the result box, to show the query plan.
 
-For example `Q2`'s plan with for the column + code generation
+For example `Q2`'s plan with the column + code generation
 looks like:
 
     distribute result [$$45]
