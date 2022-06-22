@@ -145,22 +145,19 @@ After loading the dataset, let us run the following queries:
 
 #### Q1:
 
-* Row
-
+Row
 
     USE ColumnTest;
     SELECT VALUE COUNT(*)
     FROM RowDataset;
 
-* Column
-
+Column
 
     USE ColumnTest;
     SELECT VALUE COUNT(*)
     FROM ColumnDataset;
 
-* Column with Code Generation
-
+Column with Code Generation
 
     USE ColumnTest;
     SET `compiler.codegen` "true";
@@ -169,24 +166,22 @@ After loading the dataset, let us run the following queries:
 
 #### Q2:
 
-* Row
-
+Row
 
     USE ColumnTest;
     SELECT VALUE MAX(r.temp)
     FROM RowDataset s, s.readings r;
 
-* Column
-
+Column
 
     USE ColumnTest;
     SELECT VALUE MAX(r.temp)
     FROM ColumnDataset s, s.readings r;
 
-* Column with Code Generation
-
+Column with Code Generation
 
     USE ColumnTest;
+    -- Enable code generation
     SET `compiler.codegen` "true";
     SELECT VALUE MAX(r.temp)
     FROM ColumnDataset s, s.readings r;
