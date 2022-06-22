@@ -1,0 +1,14 @@
+DataverseUse fooverse
+TypeDecl bartype [
+  open RecordType {
+    baz : bigint
+  }
+]
+TypeDecl footype [
+  open RecordType {
+    id : bigint,
+    bars : OrderedList [bartype]
+?
+  }
+]
+DatasetDecl fooset(footype) partitioned by [[id]]

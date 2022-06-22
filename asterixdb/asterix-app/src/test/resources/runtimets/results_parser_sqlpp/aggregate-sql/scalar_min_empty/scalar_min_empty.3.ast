@@ -1,0 +1,8 @@
+DataverseUse test
+Query:
+SELECT ELEMENT [
+FunctionCall asterix.sql-min@1[
+  OrderedListConstructor [
+  ]
+]
+]

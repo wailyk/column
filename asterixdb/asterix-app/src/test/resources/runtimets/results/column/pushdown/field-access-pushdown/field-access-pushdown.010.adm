@@ -1,0 +1,22 @@
+distribute result [$$17]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$17])
+    -- STREAM_PROJECT  |PARTITIONED|
+      assign [$$17] <- [{"id": $$19.getField("id"), "name": $$19.getField("name")}]
+      -- ASSIGN  |PARTITIONED|
+        project ([$$19])
+        -- STREAM_PROJECT  |PARTITIONED|
+          assign [$$19] <- [$$p.getField("user")]
+          -- ASSIGN  |PARTITIONED|
+            project ([$$p])
+            -- STREAM_PROJECT  |PARTITIONED|
+              exchange
+              -- SORT_MERGE_EXCHANGE [$$20(ASC) ]  |PARTITIONED|
+                data-scan []<-[$$20, $$p] <- test.ColumnDataset4 project-dataset ({user:{name:any,id:any}})
+                -- DATASOURCE_SCAN  |PARTITIONED|
+                  exchange
+                  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                    empty-tuple-source
+                    -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

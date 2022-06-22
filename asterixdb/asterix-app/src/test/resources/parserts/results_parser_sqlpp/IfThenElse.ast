@@ -1,0 +1,9 @@
+Query:
+SELECT ELEMENT [
+FunctionCall asterix.switch-case[
+  LiteralExpr [TRUE]
+  LiteralExpr [TRUE]
+  LiteralExpr [LONG] [20]
+  LiteralExpr [LONG] [10]
+]
+]

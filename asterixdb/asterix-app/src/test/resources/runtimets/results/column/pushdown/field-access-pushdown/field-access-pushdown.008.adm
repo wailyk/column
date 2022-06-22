@@ -1,0 +1,50 @@
+distribute result [$$29]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$29])
+    -- STREAM_PROJECT  |PARTITIONED|
+      assign [$$29] <- [{"age": $$36, "name": $$37}]
+      -- ASSIGN  |PARTITIONED|
+        project ([$$36, $$37])
+        -- STREAM_PROJECT  |PARTITIONED|
+          exchange
+          -- SORT_MERGE_EXCHANGE [$$32(ASC) ]  |PARTITIONED|
+            order (ASC, $$32)
+            -- STABLE_SORT [$$32(ASC)]  |PARTITIONED|
+              exchange
+              -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                project ([$$36, $$37, $$32])
+                -- STREAM_PROJECT  |PARTITIONED|
+                  exchange
+                  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                    join (eq($$31, $$32))
+                    -- HYBRID_HASH_JOIN [$$31][$$32]  |PARTITIONED|
+                      exchange
+                      -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                        project ([$$36, $$31])
+                        -- STREAM_PROJECT  |PARTITIONED|
+                          assign [$$36] <- [$$p1.getField("age")]
+                          -- ASSIGN  |PARTITIONED|
+                            exchange
+                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                              data-scan []<-[$$31, $$p1] <- test.ColumnDataset1 project-dataset ({age:any})
+                              -- DATASOURCE_SCAN  |PARTITIONED|
+                                exchange
+                                -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                  empty-tuple-source
+                                  -- EMPTY_TUPLE_SOURCE  |PARTITIONED|
+                      exchange
+                      -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                        project ([$$37, $$32])
+                        -- STREAM_PROJECT  |PARTITIONED|
+                          assign [$$37] <- [$$p2.getField("name")]
+                          -- ASSIGN  |PARTITIONED|
+                            exchange
+                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                              data-scan []<-[$$32, $$p2] <- test.ColumnDataset3 project-dataset ({name:any})
+                              -- DATASOURCE_SCAN  |PARTITIONED|
+                                exchange
+                                -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                  empty-tuple-source
+                                  -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

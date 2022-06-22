@@ -1,0 +1,8 @@
+[ {
+  "partition" : 2,
+  "replicas" : [ {
+    "location" : "127.0.0.1:2001",
+    "nodeId" : "asterix_nc1",
+    "status" : "IN_SYNC"
+  } ]
+} ]

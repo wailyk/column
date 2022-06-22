@@ -1,0 +1,11 @@
+DataverseUse test
+Query:
+OperatorExpr [
+  FunctionCall asterix.boolean@1[
+    LiteralExpr [STRING] [true]
+  ]
+  and
+  FunctionCall asterix.boolean@1[
+    LiteralExpr [STRING] [false]
+  ]
+]

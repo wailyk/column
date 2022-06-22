@@ -1,0 +1,30 @@
+distribute result [$$21]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$21])
+    -- STREAM_PROJECT  |PARTITIONED|
+      assign [$$21] <- [{"display_url": $$26}]
+      -- ASSIGN  |PARTITIONED|
+        project ([$$26])
+        -- STREAM_PROJECT  |PARTITIONED|
+          exchange
+          -- SORT_MERGE_EXCHANGE [$$24(ASC) ]  |PARTITIONED|
+            project ([$$26, $$24])
+            -- STREAM_PROJECT  |PARTITIONED|
+              assign [$$26] <- [get-item($$23, 0).getField("display_url")]
+              -- ASSIGN  |PARTITIONED|
+                select (eq(sql-count($$23), 1))
+                -- STREAM_SELECT  |PARTITIONED|
+                  project ([$$24, $$23])
+                  -- STREAM_PROJECT  |PARTITIONED|
+                    assign [$$23] <- [$$p.getField("entities").getField("urls")]
+                    -- ASSIGN  |PARTITIONED|
+                      exchange
+                      -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                        data-scan []<-[$$24, $$p] <- test.ColumnDataset project-dataset ({entities:{urls:any}})
+                        -- DATASOURCE_SCAN  |PARTITIONED|
+                          exchange
+                          -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                            empty-tuple-source
+                            -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

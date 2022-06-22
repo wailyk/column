@@ -1,0 +1,18 @@
+distribute result [$$16]
+-- DISTRIBUTE_RESULT  |UNPARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |UNPARTITIONED|
+    project ([$$16])
+    -- STREAM_PROJECT  |UNPARTITIONED|
+      assign [$$16] <- [or(TRUE, lt(get-year(current-date()), $$x))]
+      -- ASSIGN  |UNPARTITIONED|
+        exchange
+        -- ONE_TO_ONE_EXCHANGE  |UNPARTITIONED|
+          order (ASC, $$x)
+          -- STABLE_SORT [$$x(ASC)]  |UNPARTITIONED|
+            exchange
+            -- ONE_TO_ONE_EXCHANGE  |UNPARTITIONED|
+              unnest $$x <- range(1, 4)
+              -- UNNEST  |UNPARTITIONED|
+                empty-tuple-source
+                -- EMPTY_TUPLE_SOURCE  |UNPARTITIONED|

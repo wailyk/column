@@ -1,0 +1,11 @@
+DataverseUse test
+TypeDecl Emp [
+  closed RecordType {
+    id : bigint,
+    fname : string,
+    lname : string,
+    age : bigint,
+    dept : string
+  }
+]
+DatasetDecl employee(Emp) partitioned by [[id]]

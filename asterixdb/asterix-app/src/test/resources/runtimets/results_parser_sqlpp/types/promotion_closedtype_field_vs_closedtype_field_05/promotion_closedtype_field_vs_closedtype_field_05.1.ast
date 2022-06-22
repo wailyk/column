@@ -1,0 +1,17 @@
+DataverseUse test
+TypeDecl empInfoType [
+  open RecordType {
+    id : bigint,
+    empno : bigint,
+    name : string
+  }
+]
+TypeDecl deptInfoType [
+  open RecordType {
+    did : bigint,
+    dno : integer,
+    dname : string
+  }
+]
+DatasetDecl empDataset(empInfoType) partitioned by [[id]]
+DatasetDecl deptDataset(deptInfoType) partitioned by [[did]]

@@ -1,0 +1,41 @@
+distribute result [$$47]
+-- DISTRIBUTE_RESULT  |UNPARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |UNPARTITIONED|
+    aggregateNode [$$47] <- [agg-sql-sum($$51)]
+    -- AGGREGATE  |UNPARTITIONED|
+      exchange
+      -- RANDOM_MERGE_EXCHANGE  |PARTITIONED|
+        aggregateNode [$$51] <- [agg-sql-count(1)]
+        -- AGGREGATE  |PARTITIONED|
+          select ($$39)
+          -- STREAM_SELECT  |PARTITIONED|
+            project ([$$39])
+            -- STREAM_PROJECT  |PARTITIONED|
+              subplan {
+                        aggregateNode [$$39] <- [empty-stream()]
+                        -- AGGREGATE  |LOCAL|
+                          select (not(if-missing-or-null(eq($$49, "string"), FALSE)))
+                          -- STREAM_SELECT  |LOCAL|
+                            assign [$$49] <- [$$ht.getField("display_url")]
+                            -- ASSIGN  |LOCAL|
+                              unnest $$ht <- scan-collection($$48)
+                              -- UNNEST  |LOCAL|
+                                nested tuple source
+                                -- NESTED_TUPLE_SOURCE  |LOCAL|
+                     }
+              -- SUBPLAN  |PARTITIONED|
+                project ([$$48])
+                -- STREAM_PROJECT  |PARTITIONED|
+                  assign [$$48] <- [$$p.getField("entities").getField("urls")]
+                  -- ASSIGN  |PARTITIONED|
+                    project ([$$p])
+                    -- STREAM_PROJECT  |PARTITIONED|
+                      exchange
+                      -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                        data-scan []<-[$$46, $$p] <- test.ColumnDataset project-dataset ({entities:{urls:[{display_url:any}]}})
+                        -- DATASOURCE_SCAN  |PARTITIONED|
+                          exchange
+                          -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                            empty-tuple-source
+                            -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

@@ -1,0 +1,12 @@
+DataverseUse test
+Query:
+FieldAccessor [
+  RecordConstructor [
+    (
+      LiteralExpr [STRING] [a]
+      :
+      LiteralExpr [LONG] [2]
+    )
+  ]
+  Field=a
+]

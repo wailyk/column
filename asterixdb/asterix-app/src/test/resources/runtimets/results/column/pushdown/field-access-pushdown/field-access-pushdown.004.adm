@@ -1,0 +1,14 @@
+distribute result [$$p]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$p])
+    -- STREAM_PROJECT  |PARTITIONED|
+      exchange
+      -- SORT_MERGE_EXCHANGE [$$13(ASC) ]  |PARTITIONED|
+        data-scan []<-[$$13, $$p] <- test.ColumnDataset1
+        -- DATASOURCE_SCAN  |PARTITIONED|
+          exchange
+          -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+            empty-tuple-source
+            -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

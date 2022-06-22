@@ -1,0 +1,111 @@
+distribute result [$$94]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$94])
+    -- STREAM_PROJECT  |PARTITIONED|
+      assign [$$94] <- [{"uname": $$uname, "cnt": $$98}]
+      -- ASSIGN  |PARTITIONED|
+        exchange
+        -- SORT_MERGE_EXCHANGE [$$98(DESC), $$uname(ASC) ]  |PARTITIONED|
+          order (DESC, $$98) (ASC, $$uname)
+          -- STABLE_SORT [$$98(DESC), $$uname(ASC)]  |PARTITIONED|
+            exchange
+            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+              group by ([$$uname := $$109]) decor ([]) {
+                        aggregateNode [$$98] <- [agg-sql-sum($$108)]
+                        -- AGGREGATE  |LOCAL|
+                          nested tuple source
+                          -- NESTED_TUPLE_SOURCE  |LOCAL|
+                     }
+              -- SORT_GROUP_BY[$$109]  |PARTITIONED|
+                exchange
+                -- HASH_PARTITION_EXCHANGE [$$109]  |PARTITIONED|
+                  group by ([$$109 := $$95]) decor ([]) {
+                            aggregateNode [$$108] <- [agg-sql-count(1)]
+                            -- AGGREGATE  |LOCAL|
+                              nested tuple source
+                              -- NESTED_TUPLE_SOURCE  |LOCAL|
+                         }
+                  -- SORT_GROUP_BY[$$95]  |PARTITIONED|
+                    exchange
+                    -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                      project ([$$95])
+                      -- STREAM_PROJECT  |PARTITIONED|
+                        select ($$85)
+                        -- STREAM_SELECT  |PARTITIONED|
+                          project ([$$85, $$95])
+                          -- STREAM_PROJECT  |PARTITIONED|
+                            exchange
+                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                              group by ([$$107 := $$105]) decor ([$$95]) {
+                                        aggregateNode [$$85] <- [non-empty-stream()]
+                                        -- AGGREGATE  |LOCAL|
+                                          select (not(is-missing($$106)))
+                                          -- STREAM_SELECT  |LOCAL|
+                                            nested tuple source
+                                            -- NESTED_TUPLE_SOURCE  |LOCAL|
+                                     }
+                              -- PRE_CLUSTERED_GROUP_BY[$$105]  |PARTITIONED|
+                                exchange
+                                -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                  order (ASC, $$105)
+                                  -- STABLE_SORT [$$105(ASC)]  |PARTITIONED|
+                                    exchange
+                                    -- HASH_PARTITION_EXCHANGE [$$105]  |PARTITIONED|
+                                      project ([$$95, $$106, $$105])
+                                      -- STREAM_PROJECT  |PARTITIONED|
+                                        exchange
+                                        -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                          left outer join (eq($$99, $$81))
+                                          -- HYBRID_HASH_JOIN [$$99][$$81]  |PARTITIONED|
+                                            exchange
+                                            -- HASH_PARTITION_EXCHANGE [$$99]  |PARTITIONED|
+                                              running-aggregateNode [$$105] <- [create-query-uid()]
+                                              -- RUNNING_AGGREGATE  |PARTITIONED|
+                                                project ([$$95, $$99])
+                                                -- STREAM_PROJECT  |PARTITIONED|
+                                                  assign [$$99] <- [$$ht1.getField("display_url")]
+                                                  -- ASSIGN  |PARTITIONED|
+                                                    project ([$$95, $$ht1])
+                                                    -- STREAM_PROJECT  |PARTITIONED|
+                                                      unnest $$ht1 <- scan-collection($$100)
+                                                      -- UNNEST  |PARTITIONED|
+                                                        project ([$$100, $$95])
+                                                        -- STREAM_PROJECT  |PARTITIONED|
+                                                          assign [$$100, $$95] <- [$$p1.getField("entities").getField("urls"), $$p1.getField("user").getField("name")]
+                                                          -- ASSIGN  |PARTITIONED|
+                                                            project ([$$p1])
+                                                            -- STREAM_PROJECT  |PARTITIONED|
+                                                              exchange
+                                                              -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                                                data-scan []<-[$$96, $$p1] <- test.ColumnDataset project-dataset ({entities:{urls:[{display_url:any}]},user:{name:any}})
+                                                                -- DATASOURCE_SCAN  |PARTITIONED|
+                                                                  exchange
+                                                                  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                                                    empty-tuple-source
+                                                                    -- EMPTY_TUPLE_SOURCE  |PARTITIONED|
+                                            exchange
+                                            -- HASH_PARTITION_EXCHANGE [$$81]  |PARTITIONED|
+                                              project ([$$106, $$81])
+                                              -- STREAM_PROJECT  |PARTITIONED|
+                                                assign [$$106, $$81] <- [TRUE, $$ht2.getField("display_url")]
+                                                -- ASSIGN  |PARTITIONED|
+                                                  project ([$$ht2])
+                                                  -- STREAM_PROJECT  |PARTITIONED|
+                                                    unnest $$ht2 <- scan-collection($$101)
+                                                    -- UNNEST  |PARTITIONED|
+                                                      project ([$$101])
+                                                      -- STREAM_PROJECT  |PARTITIONED|
+                                                        assign [$$101] <- [$$p2.getField("entities").getField("urls")]
+                                                        -- ASSIGN  |PARTITIONED|
+                                                          project ([$$p2])
+                                                          -- STREAM_PROJECT  |PARTITIONED|
+                                                            exchange
+                                                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                                              data-scan []<-[$$97, $$p2] <- test.RowDataset
+                                                              -- DATASOURCE_SCAN  |PARTITIONED|
+                                                                exchange
+                                                                -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                                                                  empty-tuple-source
+                                                                  -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

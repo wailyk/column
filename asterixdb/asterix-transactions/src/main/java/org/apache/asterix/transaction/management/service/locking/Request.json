@@ -1,0 +1,34 @@
+{
+    "name" : "Request",
+    "fields" : [
+        {
+            "name" : "resource id",
+            "type" : "GLOBAL",
+            "initial" : "-1"
+        },
+        {
+            "name" : "job slot",
+            "type" : "GLOBAL",
+            "initial" : "-1"
+        },
+        {
+            "name" : "prev job request",
+            "type" : "GLOBAL",
+            "initial" : "-1"
+        },
+        {
+            "name" : "next job request",
+            "type" : "GLOBAL",
+            "initial" : "-1"
+        },
+        {
+            "name" : "next request",
+            "type" : "GLOBAL",
+            "initial" : "-1"
+        },
+        {
+            "name" : "lock mode",
+            "type" : "INT"
+        }
+    ]
+}

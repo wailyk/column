@@ -1,0 +1,40 @@
+distribute result [$$58]
+-- DISTRIBUTE_RESULT  |UNPARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |UNPARTITIONED|
+    project ([$$58])
+    -- STREAM_PROJECT  |UNPARTITIONED|
+      assign [$$58] <- [{"$1": $$63, "$2": $$64}]
+      -- ASSIGN  |UNPARTITIONED|
+        aggregateNode [$$63, $$64] <- [agg-global-sql-sum($$67), agg-global-sql-sum($$68)]
+        -- AGGREGATE  |UNPARTITIONED|
+          exchange
+          -- RANDOM_MERGE_EXCHANGE  |PARTITIONED|
+            aggregateNode [$$67, $$68] <- [agg-local-sql-sum($$51), agg-local-sql-sum($$56)]
+            -- AGGREGATE  |PARTITIONED|
+              project ([$$51, $$56])
+              -- STREAM_PROJECT  |PARTITIONED|
+                assign [$$56, $$51] <- [object-length($$p2), object-length($$p1)]
+                -- ASSIGN  |PARTITIONED|
+                  project ([$$p1, $$p2])
+                  -- STREAM_PROJECT  |PARTITIONED|
+                    exchange
+                    -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                      join (eq($$60, $$59))
+                      -- HYBRID_HASH_JOIN [$$59][$$60]  |PARTITIONED|
+                        exchange
+                        -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                          data-scan []<-[$$59, $$p1] <- test.ColumnDataset
+                          -- DATASOURCE_SCAN  |PARTITIONED|
+                            exchange
+                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                              empty-tuple-source
+                              -- EMPTY_TUPLE_SOURCE  |PARTITIONED|
+                        exchange
+                        -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                          data-scan []<-[$$60, $$p2] <- test.RowDataset
+                          -- DATASOURCE_SCAN  |PARTITIONED|
+                            exchange
+                            -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                              empty-tuple-source
+                              -- EMPTY_TUPLE_SOURCE  |PARTITIONED|

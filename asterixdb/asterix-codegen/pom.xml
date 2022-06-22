@@ -1,0 +1,316 @@
+<!--
+ ! Licensed to the Apache Software Foundation (ASF) under one
+ ! or more contributor license agreements.  See the NOTICE file
+ ! distributed with this work for additional information
+ ! regarding copyright ownership.  The ASF licenses this file
+ ! to you under the Apache License, Version 2.0 (the
+ ! "License"); you may not use this file except in compliance
+ ! with the License.  You may obtain a copy of the License at
+ !
+ !   http://www.apache.org/licenses/LICENSE-2.0
+ !
+ ! Unless required by applicable law or agreed to in writing,
+ ! software distributed under the License is distributed on an
+ ! "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ! KIND, either express or implied.  See the License for the
+ ! specific language governing permissions and limitations
+ ! under the License.
+ !-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>apache-asterixdb</artifactId>
+        <groupId>org.apache.asterix</groupId>
+        <version>0.9.8-SNAPSHOT</version>
+    </parent>
+    <artifactId>asterix-codegen</artifactId>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <properties>
+        <root.dir>${basedir}/..</root.dir>
+    </properties>
+
+
+    <profiles>
+        <profile>
+            <id>jdk11-graalvm</id>
+            <activation>
+                <jdk>[11,</jdk>
+            </activation>
+            <properties>
+                <jar.dir>${project.build.directory}/jars</jar.dir>
+                <!--
+                    - In Intellij, under:
+                      Settings > Build, Execution, Deployment > Build Tools > Maven > Running Tests
+                    - Make sure that "argsLine" is checked
+                    - This is to make sure that the below args are included when running unit tests
+                 -->
+                <test.argLine>-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI --add-opens org.graalvm.sdk/org.graalvm.polyglot=ALL-UNNAMED --add-exports java.base/jdk.internal.module=ALL-UNNAMED --add-opens org.graalvm.truffle/com.oracle.truffle.api.interop=ALL-UNNAMED -Dgraal.Dump=Truffle</test.argLine>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.10</version>
+                        <executions>
+                            <execution>
+                                <id>copy</id>
+                                <phase>process-test-classes</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.graalvm.truffle</groupId>
+                                            <artifactId>truffle-api</artifactId>
+                                            <version>${graal.version}</version>
+                                            <type>jar</type>
+                                            <overWrite>true</overWrite>
+                                            <destFileName>truffle-api.jar</destFileName>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <outputDirectory>${jar.dir}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <includes>
+                        <include>**/*TestSuite.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*AsterixHyracksIntegrationUtil.java</include>
+                    </includes>
+                    <argLine>${test.argLine} -Dgraalvm.locatorDisabled=true</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.9.2</version>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectory>
+                        ${basedir}/src/main/resources/antlr
+                    </sourceDirectory>
+                    <outputDirectory>
+                        ${basedir}/target/generated-sources/annotations/org/apache/asterix/codegen/truffle/parser
+                    </outputDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/generated-sources/annotations/</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>asterix-internal-language</finalName>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>junit:junit</exclude>
+                                    <exclude>org.graalvm.truffle:truffle-api</exclude>
+                                    <exclude>org.graalvm.truffle:truffle-dsl-processor</exclude>
+                                    <exclude>org.graalvm.truffle:truffle-tck</exclude>
+                                    <exclude>org.graalvm:graal-sdk</exclude>
+                                </excludes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <licenses>
+                                <license implementation="org.apache.rat.analysis.license.ApacheSoftwareLicense20"/>
+                            </licenses>
+                            <excludes combine.children="append">
+                                <exclude>src/test/resources/**/result/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings
+                    only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.antlr</groupId>
+                                        <artifactId>antlr4-maven-plugin</artifactId>
+                                        <versionRange>[4.7.1,)</versionRange>
+                                        <goals>
+                                            <goal>antlr</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <id>org.sonatype.m2e.antlr.antlrConfigurator</id>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.0</version>
+                    <configuration>
+                        <source>11</source>
+                        <target>11</target>
+                        <!-- This mostly needed by Intellij for Java version > 8  -->
+                        <compilerArgs>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.interop=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.source=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.object=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.instrumentation=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.nodes=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.dsl=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.frame=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.debug=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.exception=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.library=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.profiles=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.utilities=ALL-UNNAMED</arg>
+                            <arg>--add-exports</arg><arg>org.graalvm.truffle/com.oracle.truffle.api.memory=ALL-UNNAMED</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.asterix</groupId>
+            <artifactId>asterix-om</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.asterix</groupId>
+            <artifactId>asterix-column</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.truffle</groupId>
+            <artifactId>truffle-api</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.tools</groupId>
+            <artifactId>profiler</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.truffle</groupId>
+            <artifactId>truffle-dsl-processor</artifactId>
+            <scope>provided</scope>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.truffle</groupId>
+            <artifactId>truffle-tck</artifactId>
+            <version>${graal.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.9.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hyracks</groupId>
+            <artifactId>hyracks-data-std</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hyracks</groupId>
+            <artifactId>hyracks-unsafe</artifactId>
+        </dependency>
+    </dependencies>
+</project>

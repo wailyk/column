@@ -1,0 +1,20 @@
+DataverseUse test
+Query:
+SELECT ELEMENT [
+FieldAccessor [
+  Variable [ Name=$a ]
+  Field=id
+]
+]
+FROM [  FunctionCall asterix.dataset@1[
+    LiteralExpr [STRING] [test.MyData]
+  ]
+  AS Variable [ Name=$a ]
+]
+Orderby
+  FieldAccessor [
+    Variable [ Name=$a ]
+    Field=id
+  ]
+  ASC
+

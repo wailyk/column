@@ -1,0 +1,22 @@
+distribute result [$$20]
+-- DISTRIBUTE_RESULT  |PARTITIONED|
+  exchange
+  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+    project ([$$20])
+    -- STREAM_PROJECT  |PARTITIONED|
+      assign [$$20] <- [switch-case(TRUE, is-array($$22), array-star($$22).getField("text"), $$22.getField("text"))]
+      -- ASSIGN  |PARTITIONED|
+        project ([$$22])
+        -- STREAM_PROJECT  |PARTITIONED|
+          assign [$$22] <- [$$p.getField("arrayOrObject")]
+          -- ASSIGN  |PARTITIONED|
+            project ([$$p])
+            -- STREAM_PROJECT  |PARTITIONED|
+              exchange
+              -- SORT_MERGE_EXCHANGE [$$23(ASC) ]  |PARTITIONED|
+                data-scan []<-[$$23, $$p] <- test.ColumnDataset project-dataset ({arrayOrObject:<[{text:any}],{text:any}>})
+                -- DATASOURCE_SCAN  |PARTITIONED|
+                  exchange
+                  -- ONE_TO_ONE_EXCHANGE  |PARTITIONED|
+                    empty-tuple-source
+                    -- EMPTY_TUPLE_SOURCE  |PARTITIONED|
