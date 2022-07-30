@@ -19,6 +19,7 @@
 package org.apache.asterix.external.dataflow;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.asterix.active.message.ActiveManagerMessage;
@@ -58,6 +59,7 @@ public class FeedRecordDataFlowController<T> extends AbstractFeedDataFlowControl
     protected static final long INTERVAL = 1000;
     protected State state = State.CREATED;
     protected long failedRecordsCount = 0;
+    private long start;
 
     public FeedRecordDataFlowController(IHyracksTaskContext ctx, FeedLogManager feedLogManager, int numOfOutputFields,
             IRecordDataParser<T> dataParser, IRecordReader<T> recordReader) throws HyracksDataException {
@@ -79,6 +81,7 @@ public class FeedRecordDataFlowController<T> extends AbstractFeedDataFlowControl
                 return;
             } else {
                 setState(State.STARTED);
+                start = System.nanoTime();
             }
         }
         Throwable failure = null;
@@ -178,6 +181,8 @@ public class FeedRecordDataFlowController<T> extends AbstractFeedDataFlowControl
         }
         closeSignal();
         setState(State.STOPPED);
+        long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+        LOGGER.info("Total ingestion time: {}s", time);
         return th;
     }
 
